@@ -54,11 +54,11 @@ export async function copy(text) {
   try {
     const textArea = document.createElement('textarea');
     textArea.value = text;
-    // Avoid scrolling to bottom
+    // Move element off-screen for accessibility (hidden from screen readers)
+    textArea.style.position = 'absolute';
+    textArea.style.left = '-9999px';
     textArea.style.top = '0';
-    textArea.style.left = '0';
-    textArea.style.position = 'fixed';
-    textArea.style.opacity = '0';
+    textArea.setAttribute('aria-hidden', 'true');
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
