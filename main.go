@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -107,8 +108,16 @@ func main() {
 	server.Use(middleware.RequestId())
 	server.Use(middleware.Language())
 	middleware.SetUpLogger(server)
-	// Initialize session store
+	// Initialize session store with Safari-compatible cookie options
 	store := cookie.NewStore([]byte(config.SessionSecret))
+	// Set SameSite=Lax for Safari compatibility (Safari blocks SameSite=None without Secure)
+	// SameSite=Lax allows cookies to be sent with top-level navigations and GET requests
+	store.Options(sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 7, // 7 days
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 	server.Use(sessions.Sessions("session", store))
 
 	router.SetRouter(server, buildFS)

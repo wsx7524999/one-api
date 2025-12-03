@@ -39,11 +39,34 @@ export function getFooterHTML() {
 
 export async function copy(text) {
   let okay = true;
+  // Check if the Clipboard API is available (Safari may block it in some contexts)
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return okay;
+    } catch (e) {
+      console.error('Clipboard API failed:', e);
+      // Fall through to fallback method
+    }
+  }
+  // Fallback for Safari and other browsers that don't support Clipboard API
   try {
-    await navigator.clipboard.writeText(text);
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    // Avoid scrolling to bottom
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    okay = successful;
   } catch (e) {
     okay = false;
-    console.error(e);
+    console.error('Fallback copy failed:', e);
   }
   return okay;
 }
